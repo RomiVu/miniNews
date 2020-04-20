@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+    mongodb_containers:
+        image: mongo:latest
+        environment:
+          MONGO_INITDB_ROOT_USERNAME: looooke
+          MONGO_INITDB_ROOT_PASSWORD: 123456lk@@
+        ports: 
+          - 27017:27017
+        volumes: 
+          - mongodb:/data/db
+volumes: 
+    mongodb:
