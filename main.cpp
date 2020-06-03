@@ -1,10 +1,15 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <fstream>
 
 #include "map.h"
+#include "json.h"
+#include "linearregression.h"
 
 using namespace std;
+using json = nlohmann::json;
+
 
 
 int main(){
@@ -14,26 +19,53 @@ int main(){
     
     vector<Point2d> rslt;
   
-    rslt = getBezierCurve(a, b, c, 200);
+    rslt = getBezierCurve(a, b, c, 100);
     
     // label feature1 feature2
-    vector<array<double, 3>> train_data_x = getTrainData(rslt, 0);
-    vector<array<double, 3>> train_data_y = getTrainData(rslt, 1); 
-    
+    vector<array<double, 2>> features = getFeatureData(rslt);
+    vector<array<double, 2>> labels = getLabeldata(rslt);
 
-    cout << "here no plobrem..." << train_data_x.size() << endl;
-    
-    // for(int i =0; i< train_data_x.size(); i++){
-    //     cout << "getTrainData for x: "<< train_data_x[i][0] << ' ' <<  train_data_x[i][1] << ' ' << train_data_x[i][2] << endl;
-    // }
+    json jsonfile;
 
-    LinearRegression lr (train_data_x);
-    lr.train(1000, 0.001);
-    
-    cout << "hreer  no plreasds " << endl;
+    auto line1 = json::array();
+    line1.push_back(json::array( {0, 0} ));
+    line1.push_back(json::array( {0, 200} ));
 
-    cout.precision(10);
-    cout<< lr.predict(40, 60) << endl;
+    auto line2 = json::array();
+    line2.push_back(json::array( {0, 0} ));
+    line2.push_back(json::array( {200, 0} ));
+
+    jsonfile["line1"] = line1;
+    jsonfile["line2"] = line2;
+ 
+    jsonfile["p0"] = json::array({ 100, 100 }); // control  point
+    jsonfile["p1"] = json::array({ 0, 100 });// mid point of l1
+    jsonfile["p2"] = json::array({ 100, 0 });// mid point of l2
+
+    cout << " getTrainData here no plobrem..." << features.size() << endl;
+
+    jsonfile["features"] = json::array();
+    jsonfile["labels"] = json::array();
+
+    for(int i=0; i< features.size(); i++){
+        // cout << "getTrainData features: "<< data[i][0] << ' ' <<  data[i][1] << " --- label: " << data[i][2] << ' ' << data[i][3] <<  endl;
+        jsonfile["features"].push_back(json::array( {features[i][0], features[i][1]}));
+    }
+
+    for(int i=0; i< labels.size(); i++){
+        // cout << "getTrainData features: "<< data[i][0] << ' ' <<  data[i][1] << " --- label: " << data[i][2] << ' ' << data[i][3] <<  endl;
+        jsonfile["labels"].push_back(json::array( {labels[i][0], labels[i][1]}));
+    }
+
+    string filename = "data.json";
+    ofstream file(filename);
+    file << setw(4) << jsonfile << endl;
+    file.close();
+
+    cout << "Saved successfully at " << filename << endl;
+
+    LinearRegression lr (features, labels);
 
     return 0;
 }
+

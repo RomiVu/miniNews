@@ -67,96 +67,22 @@ vector<Point2d> getBezierCurve(const Point2d& p0, const Point2d& p1, const Point
     return rslt;
 }
 
-vector<array<double, 3>> getTrainData(const vector<Point2d>& bezier, int xory){
-    // xory == 0, for x, else for y;
-    vector<array<double, 3>> rslt;
+vector<array<double, 2>>  getFeatureData(const vector<Point2d>& bezier){
+    vector<array<double, 2>> rslt;
 
-    if (xory == 0) {
-        for (size_t i = 1; i < bezier.size(); i++){
-            rslt.push_back(array<double, 3> { bezier[i].x, bezier[i-1].x, bezier[i-1].y });
-        }
-    } else {
-        for (size_t i = 1; i < bezier.size(); i++){
-            rslt.push_back(array<double, 3> { bezier[i].x, bezier[i-1].x, bezier[i-1].y });
-        }
+    for (size_t i = 1; i < bezier.size(); i++){
+        rslt.push_back(array<double, 2> { bezier[i-1].x, bezier[i-1].y });
     }
+
     return rslt;
 }
 
+vector<array<double, 2>> getLabeldata(const vector<Point2d>& bezier){
+    vector<array<double, 2>> rslt;
 
-
-class Weights{
-    public:
-        vector<double> values { 0.0, 0.0 };
-        double intercption = 0.0;
-        size_t number = 2;
-
-        void update(const vector<array<double, 3>>& data, const vector<double>& y_pred, double learning_rate);
-};
-
-void Weights::update(const vector<array<double, 3>>& data, const vector<double>& y_pred, double learning_rate){
-    double dev_b; 
-    double dev_w0;
-    double dev_w1;
-
-    for(size_t i=0; i<data.size(); i++){
-        dev_b += (-2) * (data[i][0] - y_pred[i]);
-        dev_w0 += (-2) * data[i][1] * (data[i][0] - y_pred[i]);
-        dev_w1 += (-2) * data[i][2] * (data[i][0] - y_pred[i]);
+    for (size_t i = 1; i < bezier.size(); i++){
+        rslt.push_back(array<double, 2> { bezier[i].x, bezier[i].y });
     }
-     
-    intercption = (fabs(dev_b) > learning_rate ? intercption - dev_b : intercption) ;
-    values[0] = (fabs(dev_w0) > learning_rate ? values[0] - dev_w0 : values[0]) ;
-    values[1] = (fabs(dev_w1) > learning_rate ? values[1] - dev_w1 : values[1]) ;
-}
 
-
-class LinearRegression{
-        
-    private:
-        vector<array<double, 3>> data;
-        Weights weights;
-        // fit a line given some x and weights
-        void fit(vector<double>& y_pred){
-            for(size_t i = 0; i < data.size(); i++){
-                y_pred[i] = predict(data[i]);
-            }
-        }
-
-
-    public:
-        // Constructor
-        LinearRegression(const vector<array<double, 3>>& data_train);
-
-        double predict(const array<double, 3>& record){
-            double prediction = 0.0;
-            for(size_t i = 0; i < weights.number; i++){
-                prediction += weights.values[i] * record[i+1];
-            }
-            return prediction + weights.intercption;
-        }
-
-        double predict(double x, double y){
-            return x * weights.values[0] + y * weights.values[1] + weights.intercption;
-        }
-
-        // Train the regression model with some data
-        void train(size_t max_iteration, double learning_rate){
-
-            // Mallocating some space for prediction
-            vector<double> y_predition(data.size(), 0.0);
-
-            while(max_iteration > 0){
-                fit(y_predition);
-                weights.update(data, y_predition, learning_rate);
-                max_iteration--;
-            }
-        }
-};
-
-
-LinearRegression::LinearRegression(const vector<array<double, 3>>& data_train) {
-    for (size_t i = 0; i < data_train.size(); i++){
-        data.push_back(array<double, 3> { data_train[i][0] , data_train[i][1], data_train[i][2] });
-    }
+    return rslt;
 }
